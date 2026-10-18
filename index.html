@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      window.addEventListener('unhandledrejection', function (event) {
+        var msg = event && event.reason && (event.reason.message || String(event.reason));
+        if (msg && (msg.indexOf('WebSocket closed without opened') !== -1 || msg.indexOf('failed to connect to websocket') !== -1)) {
+          event.preventDefault();
+        }
+      });
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bounce Fitness Studio | Gym &amp; Fitness Studio in Chikmagalur</title>
+    <meta name="description" content="Train stronger and stay consistent at Bounce Fitness Studio in Chikmagalur. Explore gym training, personal training, Zumba and CrossFit." />
+    <meta property="og:title" content="Bounce Fitness Studio | Gym &amp; Fitness Studio in Chikmagalur" />
+    <meta property="og:description" content="Train stronger and stay consistent at Bounce Fitness Studio in Chikmagalur. Explore gym training, personal training, Zumba and CrossFit." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Teko:wght@500;600;700&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HealthClub",
+      "name": "Bounce Fitness Studio",
+      "image": "/bounce_reception_hd.jpg",
+      "description": "Bounce Fitness Studio is a fitness-focused training space in Chikmagalur designed to help members stay consistent, get stronger and work towards their individual fitness goals.",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "8QCV+WH Chikkamagaluru, Karnataka, Gundappa Gowda Arcade, Kalyan Nagar, Jyothi Nagar",
+        "addressLocality": "Chikmagalur",
+        "addressRegion": "Karnataka",
+        "postalCode": "577102",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 13.3223712,
+        "longitude": 75.793983
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday"
+          ],
+          "opens": "05:30",
+          "closes": "21:00"
+        }
+      ],
+      "priceRange": "$$",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.6",
+        "reviewCount": "128"
+      }
+    }
+    </script>
+  </head>
+  <body class="bg-zinc-950 text-zinc-100 antialiased selection:bg-amber-400 selection:text-zinc-950">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

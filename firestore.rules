@@ -1,0 +1,149 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'harishmugulavally@gmail.com' && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Appointment validation
+    function isValidAppointment(data) {
+      return data.bookingId is string && data.bookingId.size() <= 30 &&
+             data.customerName is string && data.customerName.size() > 0 && data.customerName.size() <= 100 &&
+             data.customerPhone is string && data.customerPhone.size() > 0 && data.customerPhone.size() <= 25 &&
+             data.serviceName is string && data.serviceName.size() <= 100 &&
+             data.date is string && data.date.size() <= 20 &&
+             data.timeSlot is string && data.timeSlot.size() <= 30 &&
+             data.status in ['pending', 'approved', 'rejected', 'completed', 'cancelled'];
+    }
+
+    // Enquiry validation
+    function isValidEnquiry(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.phone is string && data.phone.size() > 0 && data.phone.size() <= 25 &&
+             data.message is string && data.message.size() <= 1000 &&
+             data.status in ['new', 'contacted', 'resolved'];
+    }
+
+    // Member Subscriptions validation
+    function isValidMemberSubscription(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.phone is string && data.phone.size() > 0 && data.phone.size() <= 30 &&
+             data.planName is string && data.planName.size() > 0 && data.planName.size() <= 150 &&
+             data.durationLabel is string && data.durationLabel.size() <= 80 &&
+             data.durationDays is number && data.durationDays >= 1 && data.durationDays <= 1000 &&
+             data.startDate is string && data.endDate is string &&
+             data.status in ['active', 'expired'];
+    }
+
+    // Studio Announcement validation
+    function isValidAnnouncement(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+             data.message is string && data.message.size() > 0 && data.message.size() <= 1000 &&
+             data.type in ['holiday', 'notice', 'urgent'] &&
+             data.isActive is bool;
+    }
+
+    // Appointments Collection
+    match /appointments/{appointmentId} {
+      allow read: if true;
+      allow create: if isValidId(appointmentId) && isValidAppointment(incoming());
+      allow update: if isValidId(appointmentId) && isValidAppointment(incoming());
+      allow delete: if isValidId(appointmentId);
+    }
+
+    // Enquiries Collection
+    match /enquiries/{enquiryId} {
+      allow read: if true;
+      allow create: if isValidId(enquiryId) && isValidEnquiry(incoming());
+      allow update, delete: if isValidId(enquiryId);
+    }
+
+    // Member Subscriptions Collection (Synced between member sign-in and admin owner account)
+    match /memberSubscriptions/{memberId} {
+      allow read: if true;
+      allow create, update: if isValidId(memberId) && isValidMemberSubscription(incoming());
+      allow delete: if isValidId(memberId);
+    }
+
+    // Studio Announcements Collection (Holiday & urgent broadcasts from admin to all members)
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow create, update: if isValidId(announcementId) && isValidAnnouncement(incoming());
+      allow delete: if isValidId(announcementId);
+    }
+
+    // Services Collection (Publicly visible, admin managed)
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Trainers Collection (Publicly visible, admin managed)
+    match /trainers/{trainerId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Membership Plans Collection (Publicly visible, admin managed)
+    match /membershipPlans/{planId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Classes Collection (Publicly visible, admin managed)
+    match /classes/{classId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Testimonials Collection (Publicly visible, admin managed)
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Gallery Collection (Publicly visible, admin managed)
+    match /gallery/{galleryId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Business Settings Collection (Publicly visible, admin managed)
+    match /businessSettings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

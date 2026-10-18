@@ -1,0 +1,274 @@
+{
+  "entities": {
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Session or trial booking requested by a customer",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "bookingId": { "type": "string", "maxLength": 30 },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "customerPhone": { "type": "string", "maxLength": 20 },
+        "customerEmail": { "type": "string", "maxLength": 120 },
+        "serviceId": { "type": "string", "maxLength": 50 },
+        "serviceName": { "type": "string", "maxLength": 100 },
+        "date": { "type": "string", "maxLength": 15 },
+        "timeSlot": { "type": "string", "maxLength": 30 },
+        "fitnessGoal": { "type": "string", "maxLength": 150 },
+        "preferredTrainerId": { "type": "string", "maxLength": 60 },
+        "preferredTrainerName": { "type": "string", "maxLength": 100 },
+        "message": { "type": "string", "maxLength": 500 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "completed", "cancelled"] },
+        "userId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["bookingId", "customerName", "customerPhone", "serviceName", "date", "timeSlot", "status"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "Fitness program or service offering",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "category": { "type": "string", "maxLength": 50 },
+        "durationMinutes": { "type": "number" },
+        "priceDisplay": { "type": "string", "maxLength": 50 },
+        "iconName": { "type": "string", "maxLength": 50 },
+        "popular": { "type": "boolean" },
+        "order": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "description", "category", "isActive"]
+    },
+    "Trainer": {
+      "title": "Trainer",
+      "description": "Fitness trainer or coach profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "maxLength": 80 },
+        "specialization": { "type": "string", "maxLength": 150 },
+        "experience": { "type": "string", "maxLength": 50 },
+        "bio": { "type": "string", "maxLength": 500 },
+        "photoUrl": { "type": "string", "maxLength": 500 },
+        "availableDays": { "type": "string", "maxLength": 100 },
+        "availableHours": { "type": "string", "maxLength": 100 },
+        "order": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "role", "specialization", "isActive"]
+    },
+    "MembershipPlan": {
+      "title": "MembershipPlan",
+      "description": "Gym membership tier and duration package",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 80 },
+        "duration": { "type": "string", "maxLength": 50 },
+        "price": { "type": "string", "maxLength": 50 },
+        "popular": { "type": "boolean" },
+        "features": { "type": "string", "maxLength": 1000 },
+        "terms": { "type": "string", "maxLength": 500 },
+        "order": { "type": "number" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "duration", "price", "isActive"]
+    },
+    "ClassSchedule": {
+      "title": "ClassSchedule",
+      "description": "Weekly class scheduling slot",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "dayOfWeek": { "type": "string", "enum": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"] },
+        "time": { "type": "string", "maxLength": 20 },
+        "duration": { "type": "string", "maxLength": 30 },
+        "trainerName": { "type": "string", "maxLength": 100 },
+        "seatsTotal": { "type": "number" },
+        "seatsBooked": { "type": "number" },
+        "category": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "dayOfWeek", "time"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "description": "Customer review and feedback",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "rating": { "type": "number" },
+        "review": { "type": "string", "maxLength": 600 },
+        "verified": { "type": "boolean" },
+        "date": { "type": "string", "maxLength": 30 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerName", "rating", "review"]
+    },
+    "GalleryItem": {
+      "title": "GalleryItem",
+      "description": "Gym facility or action photo",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "enum": ["EQUIPMENT", "STUDIO", "EXTERIOR", "TRAINING", "CLASSES"] },
+        "imageUrl": { "type": "string", "maxLength": 600 },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "imageUrl"]
+    },
+    "Enquiry": {
+      "title": "Enquiry",
+      "description": "Customer contact form message",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 20 },
+        "email": { "type": "string", "maxLength": 120 },
+        "interestedIn": { "type": "string", "maxLength": 80 },
+        "message": { "type": "string", "maxLength": 800 },
+        "status": { "type": "string", "enum": ["new", "contacted", "resolved"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone", "message", "status"]
+    },
+    "BusinessSetting": {
+      "title": "BusinessSetting",
+      "description": "Editable business settings and hours",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "businessName": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 300 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "maxLength": 100 },
+        "whatsapp": { "type": "string", "maxLength": 30 },
+        "mapUrl": { "type": "string", "maxLength": 500 },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "openingHoursMonSat": { "type": "string", "maxLength": 80 },
+        "openingHoursSun": { "type": "string", "maxLength": 80 },
+        "blockedDates": { "type": "string", "maxLength": 1000 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["businessName", "address", "phone"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized staff member with administrative dashboard access",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    },
+    "MemberSubscription": {
+      "title": "MemberSubscription",
+      "description": "Signed-in gym member enrollment with chosen plan duration and expiry tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 25 },
+        "planName": { "type": "string", "maxLength": 120 },
+        "durationLabel": { "type": "string", "maxLength": 60 },
+        "durationDays": { "type": "number" },
+        "priceDisplay": { "type": "string", "maxLength": 50 },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "expired"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone", "planName", "durationLabel", "durationDays", "startDate", "endDate", "status"]
+    },
+    "StudioAnnouncement": {
+      "title": "StudioAnnouncement",
+      "description": "Holiday or studio notification broadcast from admin to all members",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 150 },
+        "message": { "type": "string", "maxLength": 1000 },
+        "holidayDate": { "type": "string", "maxLength": 20 },
+        "type": { "type": "string", "enum": ["holiday", "notice", "urgent"] },
+        "isActive": { "type": "boolean" },
+        "createdBy": { "type": "string", "maxLength": 80 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "message", "type", "isActive"]
+    }
+  },
+  "firestore": {
+    "/appointments/{appointmentId}": {
+      "schema": { "$ref": "#/entities/Appointment" },
+      "description": "Customer appointment requests and confirmations"
+    },
+    "/services/{serviceId}": {
+      "schema": { "$ref": "#/entities/Service" },
+      "description": "Gym training programs and classes offered"
+    },
+    "/trainers/{trainerId}": {
+      "schema": { "$ref": "#/entities/Trainer" },
+      "description": "Trainer profiles with bio, specialization, and availability"
+    },
+    "/membershipPlans/{planId}": {
+      "schema": { "$ref": "#/entities/MembershipPlan" },
+      "description": "Membership packages and tiers"
+    },
+    "/classes/{classId}": {
+      "schema": { "$ref": "#/entities/ClassSchedule" },
+      "description": "Weekly group fitness schedule entries"
+    },
+    "/testimonials/{testimonialId}": {
+      "schema": { "$ref": "#/entities/Testimonial" },
+      "description": "Verified client reviews and feedback"
+    },
+    "/gallery/{galleryId}": {
+      "schema": { "$ref": "#/entities/GalleryItem" },
+      "description": "Photos of facility, workout sessions, and trainers"
+    },
+    "/enquiries/{enquiryId}": {
+      "schema": { "$ref": "#/entities/Enquiry" },
+      "description": "Contact form submissions from potential members"
+    },
+    "/businessSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/BusinessSetting" },
+      "description": "Configurable business information, hours, and blocked dates"
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Admin users list"
+    },
+    "/memberSubscriptions/{memberId}": {
+      "schema": { "$ref": "#/entities/MemberSubscription" },
+      "description": "Signed-in member subscriptions, duration tracking, and expiry reminders"
+    },
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/StudioAnnouncement" },
+      "description": "Studio holiday and urgent notifications broadcast by admin to all members"
+    }
+  }
+}

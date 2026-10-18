@@ -1,0 +1,6 @@
+{
+  "name": "Bounce Fitness Studio",
+  "description": "Premium fitness studio in Chikmagalur offering gym training, personal training, Zumba, CrossFit, and seamless appointment booking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
