@@ -4,7 +4,7 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
-  return {
+  return {base:'/Bounce-fitness-studio/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
