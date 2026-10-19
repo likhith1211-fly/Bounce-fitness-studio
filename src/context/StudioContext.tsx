@@ -164,6 +164,8 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       'bounce_plans_v6',
       'bounce_testimonials_v6',
       'bounce_gallery_v6',
+      'bounce_trainers_v7',
+      'bounce_plans_v7',
     ];
     staleKeys.forEach((k) => {
       try {
@@ -173,6 +175,88 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     });
   }, []);
+
+  // Helper that guarantees all 4 core coaches (Alwyn, Glenn Prabhu, Firoz, Floor Trainer) are always present
+  const mergeTrainersWithDefaults = (incoming: Trainer[]): Trainer[] => {
+    const normalizeTrainerPhoto = (t: Trainer, defaultPhotoUrl?: string): Trainer => {
+      const lowerName = (t.name || '').toLowerCase();
+      if (t.photoUrl && t.photoUrl.startsWith('data:')) {
+        return { ...t, isActive: true };
+      }
+      if (lowerName.includes('glenn')) {
+        return { ...t, photoUrl: '/gym_images/trainer_glenn_prabhu.jpg', isActive: true };
+      }
+      if (lowerName.includes('firoz')) {
+        return { ...t, photoUrl: '/gym_images/trainer_firoz.jpg', isActive: true };
+      }
+      if (lowerName.includes('alwyn')) {
+        return { ...t, photoUrl: '/gym_images/owner_glenn_prabhu.jpg', isActive: true };
+      }
+      return {
+        ...t,
+        photoUrl: t.photoUrl || defaultPhotoUrl || '/gym_images/inside_dumbbell_rack.jpg',
+        isActive: true,
+      };
+    };
+
+    const mergedDefaults = DEFAULT_TRAINERS.map((defTrainer) => {
+      const match = incoming.find(
+        (item) =>
+          item.id === defTrainer.id ||
+          (defTrainer.id === 'trainer-alwyn' && item.name?.toLowerCase().includes('alwyn')) ||
+          (defTrainer.id === 'trainer-glenn' && item.name?.toLowerCase().includes('glenn')) ||
+          (defTrainer.id === 'trainer-firoz' && item.name?.toLowerCase().includes('firoz')) ||
+          (defTrainer.id === 'trainer-floor' && item.name?.toLowerCase().includes('floor'))
+      );
+      if (match) {
+        return normalizeTrainerPhoto(
+          {
+            ...defTrainer,
+            ...match,
+            id: defTrainer.id,
+            order: defTrainer.order,
+            isActive: true,
+          },
+          defTrainer.photoUrl
+        );
+      }
+      return normalizeTrainerPhoto(defTrainer, defTrainer.photoUrl);
+    });
+
+    const defaultIds = new Set(DEFAULT_TRAINERS.map((d) => d.id));
+    const extraTrainers = incoming
+      .filter((item) => {
+        if (defaultIds.has(item.id)) return false;
+        const n = (item.name || '').toLowerCase();
+        if (n.includes('alwyn') || n.includes('glenn') || n.includes('firoz') || n.includes('floor trainer')) {
+          return false;
+        }
+        return true;
+      })
+      .map((t) => normalizeTrainerPhoto(t));
+
+    return [...mergedDefaults, ...extraTrainers].sort((a, b) => a.order - b.order);
+  };
+
+  // Helper that guarantees all 6 core membership plans are always present
+  const mergePlansWithDefaults = (incoming: MembershipPlan[]): MembershipPlan[] => {
+    const mergedDefaults = DEFAULT_MEMBERSHIP_PLANS.map((defPlan) => {
+      const match = incoming.find((item) => item.id === defPlan.id);
+      if (match) {
+        return {
+          ...defPlan,
+          ...match,
+          id: defPlan.id,
+          order: defPlan.order,
+          isActive: true,
+        };
+      }
+      return defPlan;
+    });
+    const defaultIds = new Set(DEFAULT_MEMBERSHIP_PLANS.map((d) => d.id));
+    const extraPlans = incoming.filter((item) => !defaultIds.has(item.id));
+    return [...mergedDefaults, ...extraPlans].sort((a, b) => a.order - b.order);
+  };
 
   const [settings, setSettings] = useState<BusinessSetting>(() => {
     try {
@@ -194,22 +278,14 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [trainers, setTrainers] = useState<Trainer[]>(() => {
     try {
-      const saved = localStorage.getItem('bounce_trainers_v7');
+      const saved = localStorage.getItem('bounce_trainers_v8');
       if (saved) {
         const parsed: Trainer[] = JSON.parse(saved);
-        const alwyn = parsed.find((t) => t.name.toLowerCase().includes('alwyn'));
-        const glenn = parsed.find((t) => t.name.toLowerCase().includes('glenn'));
-        const firoz = parsed.find((t) => t.name.toLowerCase().includes('firoz'));
-        if (
-          alwyn &&
-          glenn &&
-          firoz &&
-          alwyn.photoUrl === '/gym_images/owner_glenn_prabhu.jpg' &&
-          parsed.length >= 4
-        ) {
-          return parsed;
-        }
+        const merged = mergeTrainersWithDefaults(parsed);
+        localStorage.setItem('bounce_trainers_v8', JSON.stringify(merged));
+        return merged;
       }
+      localStorage.setItem('bounce_trainers_v8', JSON.stringify(DEFAULT_TRAINERS));
       return DEFAULT_TRAINERS;
     } catch {
       return DEFAULT_TRAINERS;
@@ -234,15 +310,14 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>(() => {
     try {
-      const saved = localStorage.getItem('bounce_plans_v7');
+      const saved = localStorage.getItem('bounce_plans_v8');
       if (saved) {
         const parsed: MembershipPlan[] = JSON.parse(saved);
-        const has300Daily = parsed.some((p) => p.id === 'daily-pass' && p.price.includes('300'));
-        const has5000Quarterly = parsed.some((p) => p.id === 'quarterly' && p.price.includes('5,000'));
-        if (has300Daily && has5000Quarterly) {
-          return parsed;
-        }
+        const merged = mergePlansWithDefaults(parsed);
+        localStorage.setItem('bounce_plans_v8', JSON.stringify(merged));
+        return merged;
       }
+      localStorage.setItem('bounce_plans_v8', JSON.stringify(DEFAULT_MEMBERSHIP_PLANS));
       return DEFAULT_MEMBERSHIP_PLANS;
     } catch {
       return DEFAULT_MEMBERSHIP_PLANS;
@@ -338,9 +413,81 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           // ignore
         }
       }
+      if (e.key === 'bounce_trainers_v8' && e.newValue) {
+        try {
+          setTrainers(mergeTrainersWithDefaults(JSON.parse(e.newValue)));
+        } catch {
+          // ignore
+        }
+      }
+      if (e.key === 'bounce_plans_v8' && e.newValue) {
+        try {
+          setMembershipPlans(mergePlansWithDefaults(JSON.parse(e.newValue)));
+        } catch {
+          // ignore
+        }
+      }
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // Real-time Firestore listener for Trainers (always merges with the 4 core coaches so none ever disappear)
+  useEffect(() => {
+    try {
+      const q = query(collection(db, 'trainers'), orderBy('order', 'asc'));
+      const unsub = onSnapshot(
+        q,
+        (snapshot) => {
+          const list: Trainer[] = [];
+          snapshot.forEach((d) => {
+            list.push({ id: d.id, ...d.data() } as Trainer);
+          });
+          const merged = mergeTrainersWithDefaults(list);
+          setTrainers(merged);
+          localStorage.setItem('bounce_trainers_v8', JSON.stringify(merged));
+
+          // If Firestore is missing any of the 4 core trainers, seed them into Firestore
+          const existingIds = new Set(list.map((t) => t.id));
+          merged.forEach((trainer) => {
+            if (!existingIds.has(trainer.id)) {
+              setDoc(doc(db, 'trainers', trainer.id), trainer, { merge: true }).catch(() => {});
+            }
+          });
+        },
+        (error) => {
+          console.warn('Trainers snapshot notice:', error.message);
+        }
+      );
+      return unsub;
+    } catch (e) {
+      console.warn('Fallback mode for trainers listener:', e);
+    }
+  }, []);
+
+  // Real-time Firestore listener for Membership Plans (always merges all 6 core plans including 6 Months ₹6,999)
+  useEffect(() => {
+    try {
+      const q = query(collection(db, 'membershipPlans'), orderBy('order', 'asc'));
+      const unsub = onSnapshot(
+        q,
+        (snapshot) => {
+          const list: MembershipPlan[] = [];
+          snapshot.forEach((d) => {
+            list.push({ id: d.id, ...d.data() } as MembershipPlan);
+          });
+          const merged = mergePlansWithDefaults(list);
+          setMembershipPlans(merged);
+          localStorage.setItem('bounce_plans_v8', JSON.stringify(merged));
+        },
+        (error) => {
+          console.warn('MembershipPlans snapshot notice:', error.message);
+        }
+      );
+      return unsub;
+    } catch (e) {
+      console.warn('Fallback mode for membershipPlans listener:', e);
+    }
   }, []);
 
   // Real-time Firestore listener for Member Subscriptions (so Admin always sees every signed-in member & duration)
@@ -557,7 +704,7 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const updateTrainer = async (trainer: Trainer) => {
     const next = trainers.map((t) => (t.id === trainer.id ? trainer : t));
     setTrainers(next);
-    localStorage.setItem('bounce_trainers_v7', JSON.stringify(next));
+    localStorage.setItem('bounce_trainers_v8', JSON.stringify(next));
     try {
       await setDoc(doc(db, 'trainers', trainer.id), cleanForFirestore(trainer), { merge: true });
     } catch (e) {
@@ -570,7 +717,7 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const newTrainer: Trainer = { id, ...trainer };
     const next = [...trainers, newTrainer];
     setTrainers(next);
-    localStorage.setItem('bounce_trainers_v7', JSON.stringify(next));
+    localStorage.setItem('bounce_trainers_v8', JSON.stringify(next));
     try {
       await setDoc(doc(db, 'trainers', id), cleanForFirestore(newTrainer));
     } catch (e) {
@@ -581,7 +728,7 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const deleteTrainer = async (id: string) => {
     const next = trainers.filter((t) => t.id !== id);
     setTrainers(next);
-    localStorage.setItem('bounce_trainers_v7', JSON.stringify(next));
+    localStorage.setItem('bounce_trainers_v8', JSON.stringify(next));
     try {
       await deleteDoc(doc(db, 'trainers', id));
     } catch (e) {
@@ -629,7 +776,7 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const updatePlan = async (plan: MembershipPlan) => {
     const next = membershipPlans.map((p) => (p.id === plan.id ? plan : p));
     setMembershipPlans(next);
-    localStorage.setItem('bounce_plans_v7', JSON.stringify(next));
+    localStorage.setItem('bounce_plans_v8', JSON.stringify(next));
     try {
       await setDoc(doc(db, 'membershipPlans', plan.id), cleanForFirestore(plan), { merge: true });
     } catch (e) {
@@ -642,7 +789,7 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const newPlan: MembershipPlan = { id, ...plan };
     const next = [...membershipPlans, newPlan];
     setMembershipPlans(next);
-    localStorage.setItem('bounce_plans_v7', JSON.stringify(next));
+    localStorage.setItem('bounce_plans_v8', JSON.stringify(next));
     try {
       await setDoc(doc(db, 'membershipPlans', id), cleanForFirestore(newPlan));
     } catch (e) {
@@ -653,7 +800,7 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const deletePlan = async (id: string) => {
     const next = membershipPlans.filter((p) => p.id !== id);
     setMembershipPlans(next);
-    localStorage.setItem('bounce_plans_v7', JSON.stringify(next));
+    localStorage.setItem('bounce_plans_v8', JSON.stringify(next));
     try {
       await deleteDoc(doc(db, 'membershipPlans', id));
     } catch (e) {
@@ -1013,15 +1160,18 @@ export const StudioProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const saveAllAdminData = async () => {
     localStorage.setItem('bounce_settings_v7', JSON.stringify(settings));
     localStorage.setItem('bounce_services_v7', JSON.stringify(services));
-    localStorage.setItem('bounce_trainers_v7', JSON.stringify(trainers));
+    localStorage.setItem('bounce_trainers_v8', JSON.stringify(trainers));
     localStorage.setItem('bounce_classes_v7', JSON.stringify(classes));
-    localStorage.setItem('bounce_plans_v7', JSON.stringify(membershipPlans));
+    localStorage.setItem('bounce_plans_v8', JSON.stringify(membershipPlans));
     localStorage.setItem('bounce_testimonials_v7', JSON.stringify(testimonials));
     localStorage.setItem('bounce_gallery_v7', JSON.stringify(gallery));
     localStorage.setItem('bounce_member_subscriptions_v1', JSON.stringify(memberSubscriptions));
     localStorage.setItem('bounce_announcements_v1', JSON.stringify(announcements));
     try {
       await setDoc(doc(db, 'businessSettings', 'general'), cleanForFirestore(settings), { merge: true });
+      await Promise.all(
+        trainers.map((t) => setDoc(doc(db, 'trainers', t.id), cleanForFirestore(t), { merge: true }))
+      );
     } catch (e) {
       console.warn('Saved all admin data locally:', e);
     }

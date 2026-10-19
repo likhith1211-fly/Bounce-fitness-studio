@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { X, Users, Award, ShieldCheck, Calendar, Clock, ArrowRight, Phone, MessageSquare, CheckCircle2, Dumbbell } from 'lucide-react';
+import { X, Users, Award, ShieldCheck, Calendar, Clock, MessageSquare, Dumbbell, Camera } from 'lucide-react';
 import { useStudio } from '../context/StudioContext';
+import { Trainer } from '../types';
 
 export const TrainersTabModal: React.FC = () => {
-  const { isTrainersTabOpen, closeTrainersTab, trainers, openBooking, settings } = useStudio();
+  const { isTrainersTabOpen, closeTrainersTab, trainers, updateTrainer, openBooking, settings } = useStudio();
   const [activeTrainerId, setActiveTrainerId] = useState<string>('all');
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   if (!isTrainersTabOpen) return null;
 
@@ -16,6 +18,38 @@ export const TrainersTabModal: React.FC = () => {
     activeTrainerId === 'all'
       ? activeTrainers
       : activeTrainers.filter((t) => t.id === activeTrainerId);
+
+  const handlePhotoUpload = (trainer: Trainer, file?: File) => {
+    if (!file) return;
+    setUploadingId(trainer.id);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const maxW = 640;
+        const maxH = 800;
+        let width = img.width;
+        let height = img.height;
+        if (width > maxW || height > maxH) {
+          const ratio = Math.min(maxW / width, maxH / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          await updateTrainer({ ...trainer, photoUrl: dataUrl });
+        }
+        setUploadingId(null);
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
@@ -94,15 +128,28 @@ export const TrainersTabModal: React.FC = () => {
                   }`}
                 >
                   <div className="flex flex-col sm:flex-row gap-5 items-start">
-                    <div className="relative w-full sm:w-40 h-52 sm:h-44 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+                    <div className="relative w-full sm:w-44 h-56 sm:h-48 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
                       <img
                         src={trainer.photoUrl}
                         alt={trainer.name}
-                        className="w-full h-full object-cover object-center"
+                        className="w-full h-full object-cover object-top"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/gym_images/inside_strength_area_2.jpg';
                         }}
                       />
+                      <label
+                        className="absolute bottom-2 left-2 right-2 py-1 px-2 rounded bg-zinc-950/85 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 border border-zinc-700 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                        title={`Upload photo for ${trainer.name}`}
+                      >
+                        <Camera className="w-3 h-3" />
+                        <span>{uploadingId === trainer.id ? 'Saving...' : 'Upload Photo'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handlePhotoUpload(trainer, e.target.files?.[0])}
+                        />
+                      </label>
                       {isOwner && (
                         <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-amber-500 text-zinc-950 text-[10px] font-black uppercase tracking-wider">
                           Real Owner

@@ -651,6 +651,7 @@ export const AdminDashboard: React.FC = () => {
                     { planName: 'Daily Pass', durationLabel: '1 Day', durationDays: 1, priceDisplay: '₹300' },
                     { planName: '1 Month Membership', durationLabel: '1 Month (30 Days)', durationDays: 30, priceDisplay: '₹2,000' },
                     { planName: '3 Months Membership', durationLabel: '3 Months (90 Days)', durationDays: 90, priceDisplay: '₹5,000' },
+                    { planName: '6 Months Membership', durationLabel: '6 Months (180 Days)', durationDays: 180, priceDisplay: '₹6,999' },
                     { planName: '1 Year Membership', durationLabel: '1 Year (365 Days)', durationDays: 365, priceDisplay: '₹12,999' },
                     { planName: 'Personal Training (1-on-1)', durationLabel: '1 Month (30 Days)', durationDays: 30, priceDisplay: '₹12,000 / Month' },
                   ];
@@ -701,8 +702,9 @@ export const AdminDashboard: React.FC = () => {
                     <option value={0}>Daily Pass (₹300 • 1 Day)</option>
                     <option value={1}>1 Month (₹2,000 • 30 Days)</option>
                     <option value={2}>3 Months (₹5,000 • 90 Days)</option>
-                    <option value={3}>1 Year (₹12,999 • 365 Days)</option>
-                    <option value={4}>Personal Training (₹12,000/mo • 30 Days)</option>
+                    <option value={3}>6 Months (₹6,999 • 180 Days)</option>
+                    <option value={4}>1 Year (₹12,999 • 365 Days)</option>
+                    <option value={5}>Personal Training (₹12,000/mo • 30 Days)</option>
                   </select>
                 </div>
                 <button
@@ -1498,40 +1500,97 @@ export const AdminDashboard: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {trainers.map((t) => (
                   <div key={t.id} className="p-5 rounded-2xl bg-zinc-950 border border-zinc-800 space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <input
-                        type="text"
-                        value={t.name}
-                        onChange={(e) => updateTrainer({ ...t, name: e.target.value })}
-                        className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-sm font-bold text-white uppercase focus:border-amber-500"
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={t.photoUrl}
+                        alt={t.name}
+                        className="w-16 h-16 rounded-xl object-cover object-top border border-zinc-700 shrink-0 bg-zinc-900"
                       />
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          onClick={async () => {
-                            await updateTrainer(t);
-                            showSaved(`Saved trainer "${t.name}"!`);
-                          }}
-                          className="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 text-xs font-bold uppercase flex items-center gap-1 cursor-pointer transition-colors"
-                          title="Save Trainer"
-                        >
-                          <Save className="w-3.5 h-3.5" />
-                          <span>Save</span>
-                        </button>
-                        <button
-                          onClick={() =>
-                            requestDelete(
-                              'Trainer Profile',
-                              `${t.name} (${t.role})`,
-                              () => deleteTrainer(t.id),
-                              () => updateTrainer(t)
-                            )
-                          }
-                          className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold uppercase flex items-center gap-1 cursor-pointer transition-colors"
-                          title="Delete Trainer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Delete</span>
-                        </button>
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <input
+                            type="text"
+                            value={t.name}
+                            onChange={(e) => updateTrainer({ ...t, name: e.target.value })}
+                            className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-sm font-bold text-white uppercase focus:border-amber-500"
+                          />
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={async () => {
+                                await updateTrainer(t);
+                                showSaved(`Saved trainer "${t.name}"!`);
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 text-xs font-bold uppercase flex items-center gap-1 cursor-pointer transition-colors"
+                              title="Save Trainer"
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                              <span>Save</span>
+                            </button>
+                            <button
+                              onClick={() =>
+                                requestDelete(
+                                  'Trainer Profile',
+                                  `${t.name} (${t.role})`,
+                                  () => deleteTrainer(t.id),
+                                  () => updateTrainer(t)
+                                )
+                              }
+                              className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-bold uppercase flex items-center gap-1 cursor-pointer transition-colors"
+                              title="Delete Trainer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label className="px-2.5 py-1 rounded bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-zinc-950 border border-amber-500/30 text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors shrink-0">
+                            Upload Trainer Photo
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  const img = new Image();
+                                  img.onload = async () => {
+                                    const canvas = document.createElement('canvas');
+                                    const maxW = 640;
+                                    const maxH = 800;
+                                    let width = img.width;
+                                    let height = img.height;
+                                    if (width > maxW || height > maxH) {
+                                      const ratio = Math.min(maxW / width, maxH / height);
+                                      width = Math.round(width * ratio);
+                                      height = Math.round(height * ratio);
+                                    }
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    const ctx = canvas.getContext('2d');
+                                    if (ctx) {
+                                      ctx.drawImage(img, 0, 0, width, height);
+                                      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                                      await updateTrainer({ ...t, photoUrl: dataUrl });
+                                      showSaved(`Updated photo for ${t.name}!`);
+                                    }
+                                  };
+                                  img.src = ev.target?.result as string;
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                            />
+                          </label>
+                          <input
+                            type="text"
+                            value={t.photoUrl}
+                            onChange={(e) => updateTrainer({ ...t, photoUrl: e.target.value })}
+                            placeholder="Photo URL or upload..."
+                            className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-[10px] text-zinc-400"
+                          />
+                        </div>
                       </div>
                     </div>
 

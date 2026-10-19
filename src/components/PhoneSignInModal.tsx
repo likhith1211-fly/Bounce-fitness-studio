@@ -31,6 +31,13 @@ const PLAN_OPTIONS = [
     priceDisplay: '₹5,000',
   },
   {
+    label: '6 Months Transformation (₹6,999 - 6 Months)',
+    planName: '6 Months Membership',
+    durationLabel: '6 Months (180 Days)',
+    durationDays: 180,
+    priceDisplay: '₹6,999',
+  },
+  {
     label: '1 Year Annual Membership (₹12,999 - 12 Months)',
     planName: '1 Year Membership',
     durationLabel: '1 Year (365 Days)',

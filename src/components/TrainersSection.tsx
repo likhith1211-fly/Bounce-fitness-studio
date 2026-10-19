@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Award, Clock, Calendar, ArrowRight, ShieldCheck, Sparkles, Users, CheckCircle2 } from 'lucide-react';
+import { Award, Clock, Calendar, ArrowRight, ShieldCheck, Sparkles, Users, Camera } from 'lucide-react';
 import { useStudio } from '../context/StudioContext';
+import { Trainer } from '../types';
 
 export const TrainersSection: React.FC = () => {
-  const { trainers, openBooking, openTrainersTab } = useStudio();
+  const { trainers, updateTrainer, openBooking, openTrainersTab } = useStudio();
   const [selectedTrainerFilter, setSelectedTrainerFilter] = useState<string>('all');
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   const activeTrainers = trainers
     .filter((t) => t.isActive)
@@ -14,6 +16,38 @@ export const TrainersSection: React.FC = () => {
     selectedTrainerFilter === 'all'
       ? activeTrainers
       : activeTrainers.filter((t) => t.id === selectedTrainerFilter);
+
+  const handlePhotoUpload = (trainer: Trainer, file?: File) => {
+    if (!file) return;
+    setUploadingId(trainer.id);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const maxW = 640;
+        const maxH = 800;
+        let width = img.width;
+        let height = img.height;
+        if (width > maxW || height > maxH) {
+          const ratio = Math.min(maxW / width, maxH / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          await updateTrainer({ ...trainer, photoUrl: dataUrl });
+        }
+        setUploadingId(null);
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <section id="trainers" className="py-24 bg-zinc-950 relative border-t border-zinc-800">
@@ -87,16 +121,31 @@ export const TrainersSection: React.FC = () => {
               >
                 {/* Photo & Role */}
                 <div>
-                  <div className="relative h-72 w-full overflow-hidden bg-zinc-900">
+                  <div className="relative h-80 w-full overflow-hidden bg-zinc-900">
                     <img
                       src={trainer.photoUrl}
                       alt={trainer.name}
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 filter contrast-[1.08]"
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 filter contrast-[1.06]"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/gym_images/inside_strength_area_2.jpg';
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/30 to-transparent" />
+
+                    {/* Quick Photo Upload Button on Trainer Name Card */}
+                    <label
+                      className="absolute top-3 left-3 px-2.5 py-1.5 rounded-lg bg-zinc-950/80 hover:bg-amber-500 text-zinc-200 hover:text-zinc-950 border border-zinc-700/80 hover:border-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer backdrop-blur-md transition-all shadow-md z-10"
+                      title={`Upload custom photo for ${trainer.name}`}
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>{uploadingId === trainer.id ? 'Saving...' : 'Set Photo'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handlePhotoUpload(trainer, e.target.files?.[0])}
+                      />
+                    </label>
 
                     {isOwner && (
                       <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500 text-zinc-950 text-[10px] font-black uppercase tracking-wider shadow-md">
